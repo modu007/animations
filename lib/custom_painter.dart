@@ -54,27 +54,64 @@ class _CustomPainterAnimationState extends State<CustomPainterAnimation>
     with TickerProviderStateMixin {
   late AnimationController sidesController;
   late Animation sidesAnimation;
+  late AnimationController sizeController;
+  late Animation sizeAnimation;
+  late AnimationController rotationController;
+  late Animation rotateAnimation;
 
   @override
   void initState() {
     sidesController = AnimationController(
         vsync: this,
-      duration: const Duration(seconds: 3)
+      duration: const Duration(seconds: 3),
+    );
+    sizeController =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(seconds: 3),
+        );
+    sidesController =AnimationController(
+        vsync: this,
+        duration: const Duration(seconds: 3),
     );
     sidesAnimation = IntTween(
       begin: 3,
       end: 10
+    ).chain(
+      CurveTween(
+        curve: Curves.bounceInOut,
+      ),
     ).animate(sidesController);
+    sizeAnimation = Tween<double>(
+      begin: 20,
+        end: 400
+    ).animate(sizeController);
+    rotationController = AnimationController(
+        vsync: this,
+      duration: const Duration(seconds: 3),
+    );
+    rotateAnimation = Tween<double>(
+      begin: 0,
+      end: 2 *pi,
+    ).chain(
+      CurveTween(
+        curve: Curves.easeInOut,
+      ),
+    ).animate(rotationController);
     super.initState();
   }
   @override
   void didChangeDependencies() {
     sidesController.repeat(reverse: true);
+    sizeController.repeat(reverse: true);
+    rotationController.repeat(reverse: true);
     super.didChangeDependencies();
   }
   @override
   void dispose() {
     sidesController.dispose();
+    sizeController.dispose();
+    rotationController.dispose();
     super.dispose();
   }
   @override
@@ -84,14 +121,22 @@ class _CustomPainterAnimationState extends State<CustomPainterAnimation>
       body: Center(
         child: AnimatedBuilder(
           animation: Listenable.merge([
-            sidesController
+            sidesController,
+            sizeController,
+            rotationController
           ]),
           builder: (context,child){
-            return CustomPaint(
-              painter: Polygon(sides: sidesAnimation.value),
-              child: SizedBox(
-                height: MediaQuery.of(context).size.width,
-                width: MediaQuery.of(context).size.width,
+            return Transform(
+              alignment: Alignment.center,
+             transform: Matrix4.identity()..rotateX(rotateAnimation.value)
+               ..rotateY(rotateAnimation.value)
+               ..rotateZ(rotateAnimation.value),
+              child: CustomPaint(
+                painter: Polygon(sides: sidesAnimation.value),
+                child: SizedBox(
+                  height: sizeAnimation.value,
+                  width: sizeAnimation.value,
+                ),
               ),
             );
           }
